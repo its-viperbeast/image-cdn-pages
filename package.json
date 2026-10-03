@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "wrangler types && astro dev",
-    "build": "wrangler types && astro build && node scripts/prepare-pages-output.mjs",
+    "build": "astro build && node scripts/prepare-pages-output.mjs",
     "preview": "wrangler types && astro preview",
     "deploy": "npm run build && wrangler deploy",
     "test": "vitest run"
@@ -23,6 +23,7 @@
     "vitest": "^3.2.4"
   },
   "allowScripts": {
-    "esbuild": true
+    "esbuild": true,
+    "workerd": true
   }
 }
