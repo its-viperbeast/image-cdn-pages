@@ -15,7 +15,8 @@ export default defineConfig({
       name: "pages-output",
       hooks: {
         "astro:build:done": async () => {
-          await import("./scripts/prepare-pages-output.mjs");
+          const { preparePagesOutput } = await import("./scripts/prepare-pages-output.mjs");
+          await preparePagesOutput();
         },
       },
     },
