@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "wrangler types && astro dev",
-    "build": "wrangler types && astro build",
+    "build": "wrangler types && astro build && node scripts/prepare-pages-output.mjs",
     "preview": "wrangler types && astro preview",
     "deploy": "npm run build && wrangler deploy",
     "test": "vitest run"
@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.13.10",
+    "esbuild": "^0.28.2",
     "vitest": "^3.2.4"
   },
   "allowScripts": {
