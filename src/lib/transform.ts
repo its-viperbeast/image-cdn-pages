@@ -9,7 +9,6 @@ export type TransformContext = {
   serviceHost: string;
   env?: {
     ALLOWED_HOSTS?: string;
-    IMAGES?: any;
     [key: string]: unknown;
   };
 };
@@ -53,48 +52,8 @@ function formatParam(format: OutputFormat): string {
 async function defaultImageFetcher(
   _targetUrl: URL,
   params: ImageParams,
-  ctx: TransformContext,
+  _ctx: TransformContext,
 ): Promise<Response> {
-  const env = ctx.env;
-
-  // Cloudflare Images binding (if available in environment)
-  if (env?.IMAGES && typeof env.IMAGES.input === "function") {
-    try {
-      const sourceRes = await fetch(params.sourceUrl, {
-        headers: {
-          "user-agent": "img-cdn/1.0",
-          accept: "image/*,*/*;q=0.8",
-        },
-      });
-      if (!sourceRes.ok) {
-        return plainText(
-          `Failed to fetch source image: ${sourceRes.statusText || sourceRes.status}`,
-          sourceRes.status >= 400 && sourceRes.status < 500 ? 400 : 502,
-        );
-      }
-      let transformer = env.IMAGES.input(sourceRes.body);
-      const opts: Record<string, unknown> = {};
-      if (params.width) opts.width = params.width;
-      if (params.height) opts.height = params.height;
-      if (params.fit) opts.fit = params.fit;
-      if (params.quality) opts.quality = params.quality;
-      transformer = transformer.transform(opts);
-      const out = await transformer.output({ format: params.format });
-      if (typeof out?.response === "function") {
-        return await out.response();
-      }
-      if (out instanceof Response) {
-        return out;
-      }
-      if (out?.body) {
-        return new Response(out.body, out);
-      }
-    } catch {
-      // Fall through to cf.image if IMAGES binding is not supported in this runtime
-    }
-  }
-
-  // Cloudflare native edge image resizing via cf.image
   const formatShort = formatParam(params.format);
   const cfImage: Record<string, unknown> = {
     format: formatShort,
@@ -160,7 +119,7 @@ export async function handleImageRequest(
 
 export async function handlePagesRequest(
   request: Request,
-  env: { ALLOWED_HOSTS?: string; IMAGES?: any; [key: string]: unknown },
+  env: { ALLOWED_HOSTS?: string; [key: string]: unknown },
 ): Promise<Response> {
   const url = new URL(request.url);
   return handleImageRequest(

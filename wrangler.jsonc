@@ -6,8 +6,5 @@
 	"pages_build_output_dir": "./dist",
 	"vars": {
 		"ALLOWED_HOSTS": ""
-	},
-	"images": {
-		"binding": "IMAGES"
 	}
 }

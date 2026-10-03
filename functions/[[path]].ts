@@ -2,7 +2,6 @@ import { handlePagesRequest } from "../src/lib/transform";
 
 interface Env {
   ALLOWED_HOSTS?: string;
-  IMAGES?: any;
   [key: string]: unknown;
 }
 
