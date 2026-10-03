@@ -57,10 +57,8 @@ describe("parseImageParams", () => {
     const fallback = params("url=https://cdn.example/a.jpg", "*/*");
 
     expect(jpeg.ok && jpeg.params.format).toBe("image/jpeg");
-    expect(jpeg.ok && jpeg.params.negotiated).toBe(false);
     expect(webp.ok && webp.params.format).toBe("image/webp");
     expect(avif.ok && avif.params.format).toBe("image/avif");
-    expect(avif.ok && avif.params.negotiated).toBe(true);
     expect(webpAccept.ok && webpAccept.params.format).toBe("image/webp");
     expect(fallback.ok && fallback.params.format).toBe("image/jpeg");
     expect(params("url=https://cdn.example/a.jpg&output=gif").ok).toBe(false);

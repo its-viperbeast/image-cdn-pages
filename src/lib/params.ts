@@ -11,7 +11,6 @@ export type ImageParams = {
   fit?: FitMode;
   quality?: number;
   format: OutputFormat;
-  negotiated: boolean;
 };
 
 export type ParamResult =
@@ -61,7 +60,6 @@ export function parseImageParams(
       fit: fit?.value,
       quality: quality?.value,
       format: format.format,
-      negotiated: format.negotiated,
     },
   };
 }
@@ -127,17 +125,14 @@ function parseQuality(
 function parseFormat(
   raw: string | null,
   accept: string | null,
-): { ok: true; format: OutputFormat; negotiated: boolean } | { ok: false; status: number; message: string } {
-  if (!raw) {
-    return { ok: true, format: formatFromAccept(accept), negotiated: true };
-  }
-  const str = raw.trim().toLowerCase();
+): { ok: true; format: OutputFormat } | { ok: false; status: number; message: string } {
+  const str = raw?.trim().toLowerCase();
   if (!str) {
-    return { ok: true, format: formatFromAccept(accept), negotiated: true };
+    return { ok: true, format: formatFromAccept(accept) };
   }
   const format = OUTPUT_FORMATS[str];
   if (!format) {
     return { ok: false, status: 400, message: "output must be jpg, png, webp, or avif" };
   }
-  return { ok: true, format, negotiated: false };
+  return { ok: true, format };
 }

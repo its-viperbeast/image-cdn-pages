@@ -5,7 +5,7 @@ On-the-fly image optimizer built for **[Cloudflare Pages](https://pages.cloudfla
 ## How it Works
 
 - **Static Frontend**: Astro statically builds the interactive playground UI to `dist/`.
-- **Edge Transformations**: Cloudflare Pages Functions (`functions/[[path]].ts`) handle on-the-fly image resizing and format negotiation via Cloudflare's edge Image Resizing and the `IMAGES` binding.
+- **Edge Transformations**: Cloudflare Pages Functions (`functions/[[path]].ts`) handle on-the-fly image resizing and format negotiation via Cloudflare's edge Image Resizing (`cf.image` fetch options).
 - **SSRF Protection**: Validates all source image URLs, strictly enforcing HTTPS, and blocks loopback, private IPv4/IPv6 ranges, link-local, and cloud metadata endpoints.
 - **Origin Allowlist**: Optional allowlist via `ALLOWED_HOSTS` environment variable.
 

@@ -1,74 +1,75 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { handleImageRequest } from "../src/lib/transform";
 
-const context = {
-  origin: "https://cdn.example",
-  allowedHosts: "images.example",
-  serviceHost: "cdn.example",
-};
+const ALLOWED_HOSTS = "images.example";
+
+type FetchMock = ReturnType<typeof vi.fn<(url: string, init?: RequestInit) => Promise<Response>>>;
+
+function call(query: string, accept: string | null = "image/webp") {
+  return handleImageRequest(new URL(`https://cdn.example/?${query}`), accept, ALLOWED_HOSTS);
+}
+
+function imageOptions(fetchMock: FetchMock): RequestInitCfPropertiesImage {
+  const init = fetchMock.mock.calls[0]?.[1];
+  return (init?.cf as { image: RequestInitCfPropertiesImage }).image;
+}
 
 describe("handleImageRequest", () => {
-  it("rewrites directly to Astro's native image endpoint", async () => {
-    const nativeResponse = new Response("optimized", {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("fetches the source with edge image resizing options", async () => {
+    const upstream = new Response("optimized", {
       headers: { "content-type": "image/webp" },
     });
-    const rewrite = vi.fn(async () => nativeResponse);
+    const fetchMock: FetchMock = vi.fn(async () => upstream);
+    vi.stubGlobal("fetch", fetchMock);
 
-    const response = await handleImageRequest(
-      new URLSearchParams(
-        "url=https://images.example/photo.jpg&w=800&h=600&fit=cover&q=80&output=webp",
-      ),
-      "image/webp",
-      context,
-      rewrite,
+    const response = await call(
+      "url=https://images.example/photo.jpg&w=800&h=600&fit=cover&q=80&output=webp",
     );
 
-    expect(response).toBe(nativeResponse);
-    expect(rewrite).toHaveBeenCalledOnce();
-    const url = rewrite.mock.calls[0]?.[0];
-    expect(url?.pathname).toBe("/_image");
-    expect(Object.fromEntries(url?.searchParams ?? [])).toEqual({
-      href: "https://images.example/photo.jpg",
-      w: "800",
-      h: "600",
+    expect(response).toBe(upstream);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("https://images.example/photo.jpg");
+    expect(imageOptions(fetchMock)).toEqual({
+      format: "webp",
+      width: 800,
+      height: 600,
       fit: "cover",
-      q: "80",
-      f: "webp",
+      quality: 80,
     });
   });
 
-  it("preserves streaming and varies negotiated formats by Accept", async () => {
-    const rewrite = vi.fn(async () =>
-      new Response("optimized", {
-        headers: {
-          "content-type": "image/avif",
-          vary: "Origin",
-        },
-      }),
-    );
+  it("negotiates the format from Accept when output is omitted", async () => {
+    const fetchMock: FetchMock = vi.fn(async () => new Response("optimized"));
+    vi.stubGlobal("fetch", fetchMock);
 
-    const response = await handleImageRequest(
-      new URLSearchParams("url=https://images.example/photo.jpg"),
-      "image/avif,image/webp",
-      context,
-      rewrite,
-    );
+    await call("url=https://images.example/photo.jpg", "image/avif,image/webp");
 
-    expect(response.headers.get("vary")).toBe("Origin, Accept");
-    expect(await response.text()).toBe("optimized");
+    expect(imageOptions(fetchMock).format).toBe("avif");
   });
 
-  it("rejects blocked hosts before invoking the image endpoint", async () => {
-    const rewrite = vi.fn(async () => new Response("should not run"));
-
-    const response = await handleImageRequest(
-      new URLSearchParams("url=https://evil.example/photo.jpg"),
-      "image/webp",
-      context,
-      rewrite,
+  it("maps upstream client errors to 400 and server errors to 502", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("nope", { status: 404, statusText: "Not Found" })),
     );
+    expect((await call("url=https://images.example/photo.jpg")).status).toBe(400);
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("boom", { status: 500 })),
+    );
+    expect((await call("url=https://images.example/photo.jpg")).status).toBe(502);
+  });
+
+  it("rejects disallowed hosts before fetching", async () => {
+    const fetchMock: FetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await call("url=https://evil.example/photo.jpg");
 
     expect(response.status).toBe(403);
-    expect(rewrite).not.toHaveBeenCalled();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 });
