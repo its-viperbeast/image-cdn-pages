@@ -1,5 +1,6 @@
 # build output
 dist/
+_worker.bundle
 # generated types
 .astro/
 .wrangler/
