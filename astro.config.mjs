@@ -10,4 +10,14 @@ export default defineConfig({
     remotePatterns: [{ protocol: "https" }],
   },
   adapter: cloudflare(),
+  integrations: [
+    {
+      name: "pages-output",
+      hooks: {
+        "astro:build:done": async () => {
+          await import("./scripts/prepare-pages-output.mjs");
+        },
+      },
+    },
+  ],
 });
