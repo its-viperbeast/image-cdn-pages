@@ -22,14 +22,14 @@ export function isHostAllowed(hostname: string, allowedHosts: string): boolean {
 }
 
 function isNormalizedHostAllowed(hostname: string, allowedHosts: string): boolean {
-  let hasAllowlist = false;
-  for (const entry of allowedHosts.split(",")) {
+  const trimmed = allowedHosts.trim();
+  if (!trimmed) return true;
+  for (const entry of trimmed.split(",")) {
     const allowedHost = normalizeHost(entry);
     if (!allowedHost) continue;
-    hasAllowlist = true;
     if (allowedHost === hostname) return true;
   }
-  return !hasAllowlist;
+  return false;
 }
 
 export function isBlockedHost(hostname: string): boolean {
