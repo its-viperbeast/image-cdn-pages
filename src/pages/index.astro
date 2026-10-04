@@ -1,0 +1,71 @@
+---
+// Playground UI page for img-cdn
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>img-cdn</title>
+    <link href="/static/style.css" rel="stylesheet" />
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>img-cdn</h1>
+        <p>Resize and re-encode a public image. The request URL is the CDN URL.</p>
+      </header>
+      <div class="layout">
+        <form id="optimizer">
+          <label>
+            Image URL
+            <input id="url" name="url" type="url" required placeholder="https://example.com/photo.jpg" />
+          </label>
+          <div class="grid">
+            <label>
+              Width
+              <input id="w" name="w" type="number" min="1" max="4096" inputmode="numeric" />
+            </label>
+            <label>
+              Height
+              <input id="h" name="h" type="number" min="1" max="4096" inputmode="numeric" />
+            </label>
+            <label>
+              Fit
+              <select id="fit" name="fit">
+                <option value="">Default</option>
+                <option value="contain">contain</option>
+                <option value="cover">cover</option>
+                <option value="scale-down">scale-down</option>
+                <option value="inside">inside</option>
+              </select>
+            </label>
+            <label>
+              Quality
+              <input id="q" name="q" type="number" min="1" max="100" inputmode="numeric" />
+            </label>
+          </div>
+          <label>
+            Output
+            <select id="output" name="output">
+              <option value="">Auto</option>
+              <option value="jpg">jpg</option>
+              <option value="png">png</option>
+              <option value="webp">webp</option>
+              <option value="avif">avif</option>
+            </select>
+          </label>
+          <button type="submit">Preview</button>
+        </form>
+        <section class="preview" aria-live="polite">
+          <p class="url" id="built">
+            <a id="link" href="/">Add an image URL</a>
+          </p>
+          <p class="status" id="status"></p>
+          <img id="preview" alt="Transformed image" hidden />
+        </section>
+      </div>
+    </main>
+    <script is:inline src="/static/playground.js"></script>
+  </body>
+</html>
