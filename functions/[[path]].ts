@@ -24,5 +24,18 @@ export const onRequest: PagesFunction<Env> = async (context) => {
     });
   }
 
-  return handleImageRequest(url, request.headers.get("accept"), context.env.ALLOWED_HOSTS ?? "");
+  try {
+    return await handleImageRequest(
+      url,
+      request.headers.get("accept"),
+      context.env.ALLOWED_HOSTS ?? "",
+    );
+  } catch {
+    // Last-resort safety net: any unexpected failure still gets a clean error
+    // response instead of an unhandled exception with a stack trace.
+    return new Response("Internal error", {
+      status: 500,
+      headers: { "content-type": "text/plain; charset=utf-8" },
+    });
+  }
 };

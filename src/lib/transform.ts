@@ -42,12 +42,16 @@ export async function handleImageRequest(
   const validation = checkSourceUrl(parsed.params.sourceUrl, allowedHosts, url.hostname);
   if (!validation.ok) return plainText(validation.message, validation.status);
 
-  const res = await fetchImage(parsed.params);
+  let res: Response;
+  try {
+    res = await fetchImage(parsed.params);
+  } catch {
+    // The fetch itself failed: DNS error, connection reset, transform failure, …
+    return plainText("Failed to fetch source image", 502);
+  }
+
   if (!res.ok) {
-    return plainText(
-      `Failed to fetch source image: ${res.statusText || res.status}`,
-      res.status >= 400 && res.status < 500 ? 400 : 502,
-    );
+    return plainText("Failed to fetch source image", res.status >= 400 && res.status < 500 ? 400 : 502);
   }
 
   // Stream the optimized image straight through, untouched.

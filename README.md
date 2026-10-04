@@ -20,7 +20,6 @@ src/lib/params.ts       Query-parameter parsing and validation
 src/lib/fetch-image.ts  SSRF protection and host allowlist
 src/lib/transform.ts    Edge fetch with image transform options
 public/index.html       Static home page ("Restricted / not allowed" notice)
-public/favicon.ico      Favicon
 wrangler.jsonc          Cloudflare Pages configuration
 ```
 
@@ -97,7 +96,8 @@ https://img-cdn.pages.dev/?url=https%3A%2F%2Fexample.com%2Fphoto.jpg&w=300&h=300
 | `400`  | Missing/invalid `url`, non-HTTPS source, credentials in the URL, source points at the CDN itself, invalid `w`/`h`/`fit`/`q`/`output`, or the origin returned a 4xx |
 | `403`  | Source host is blocked (private/loopback/metadata address) or not in `ALLOWED_HOSTS`                                           |
 | `405`  | Request method is not `GET` or `HEAD`                                                                                          |
-| `502`  | Origin returned a 5xx or another unexpected status                                                                              |
+| `500`  | Unexpected internal error (always a clean error message, never a stack trace)                                                  |
+| `502`  | Origin returned a 5xx, the source could not be reached (e.g. DNS failure), or the image could not be fetched/transformed        |
 
 ## Security
 
