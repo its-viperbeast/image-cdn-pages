@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && node scripts/prepare-pages-output.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "generate-types": "wrangler types"
@@ -15,6 +15,7 @@
   "dependencies": {
     "@astrojs/cloudflare": "^14.3.3",
     "astro": "^7.3.5",
+    "esbuild": "^0.28.2",
     "wrangler": "^4.147.0"
   },
   "allowScripts": {
